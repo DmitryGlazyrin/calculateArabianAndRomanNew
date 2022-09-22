@@ -1,18 +1,27 @@
 import java.io.IOException;
+import java.sql.SQLOutput;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         Scanner scan = new Scanner(System.in);
         String stringInput = scan.nextLine();
-        calculate(stringInput);
-
-
+        System.out.print(calculate(stringInput));
     }
 
-    static void calculate(String stringInput) {
-        String stringEqualsArabian = stringInput.replaceAll("\\d+\\s(\\+|-|\\/|\\*)\\s\\d+", ""); //делаем пустую строку (убираем числа и знак)
+
+
+
+
+
+    static String calculate(String stringInput) {
+        Integer result = 0; // Для записи результата вычислений
+        String exception=""; // возвращает обработанное исключение
+        String arabianResult="";
+
+        String stringEqualsArabian = stringInput.replaceAll("(-?[0-9]+\\s(\\+|-|\\/|\\*)\\s-?[0-9]+){1}", ""); //делаем пустую строку (убираем числа и знак)
         boolean flagArabian = stringEqualsArabian.isEmpty();//проверка математического выражения, подтверждающая, что были введены арабские числа.
+
         if (flagArabian == true) {
             String[] arrStringInput = stringInput.split(" ");
             String stringNum1 = "";//принимает число в строковом представлении.
@@ -29,32 +38,46 @@ public class Main {
             }
             int num1 = Integer.parseInt(stringNum1);//Парсим числа из строки.
             int num2 = Integer.parseInt(stringNum2);//
+
+
+            if((num1>10 || num2>10)||(num1<0 || num2<0)){//контроль работы калькулятора в диапазоне 0-10
+                try{
+                    throw new IllegalArgumentException();
+                } catch (IllegalArgumentException e){
+                    exception = "Введенное число не входит в диапазон работы калькулятора.";
+                    return exception;
+                }
+            }
+
             switch (znak) {
                 case '+':
-                    int sum = num1 + num2;
-                    System.out.print("Output: " + sum);
+                    result = num1 + num2;
                     break;
                 case '-':
-                    int difference = num1 - num2;
-                    System.out.print("Output: " + difference);
+                    result = num1 - num2;
                     break;
                 case '*':
-                    int multiplication = num1 * num2;
-                    System.out.print("Output: " + multiplication);
+                    result = num1 * num2;
                     break;
                 case '/':
-                    int division = num1 / num2;
-                    System.out.print("Output: " + division);
-                    break;
+                    try {
+                        result = num1 / num2;
+                    } catch (ArithmeticException e) {
+                        exception = "Нельзя делить на ноль.";
+                        return exception;
+                    }
             }
+            arabianResult = result.toString(); //получаем строку
+            return arabianResult;
         }
 
 
-        String stringEqualsRoman = stringInput.replaceAll("[I,V,X,L,C]+\\s(\\+|-|\\/|\\*)\\s[I,V,X,L,C]+", ""); //убираем римские числа и знак.
+        String stringEqualsRoman = stringInput.replaceAll("-?[I,V,X,L,C]{1,8}\\s(\\+|-|\\/|\\*)\\s-?[I,V,X,L,C]{1,8}", ""); //убираем римские числа и знак.
         boolean flagRoman = stringEqualsRoman.isEmpty();//проверка математического выражения, на то, что оно состояло из римских чисел.
+
         if (flagRoman == true) {
             String[] arrStringInput = stringInput.split(" ");
-            String x1 = "";
+            String x1 = ""; //записываем в эти переменные строковое представление римского числа
             String x2 = "";
             char znak = '0';
             for (int i = 0; i < arrStringInput.length; i++) {
@@ -66,9 +89,19 @@ public class Main {
                     x2 = arrStringInput[2];
                 }
             }
+
+
+            try { //контроль работы калькулятора в диапазоне римских цифр 1-10
+                int num1Compare = Roman.valueOf(x1).toInt();
+                int num2Compare = Roman.valueOf(x2).toInt();
+            } catch (IllegalArgumentException e){
+                exception = "Введенное число не входит в диапазон работы калькулятора.";
+                return exception;
+            }
+
+
             int num1 = Roman.valueOf(x1).toInt();//Возвращаем из Enum константу, соответствующую переменной, применяя метод, 'toInt' возвращаем int-представление константы.
             int num2 = Roman.valueOf(x2).toInt();
-            int result = 0;
             switch (znak) {
                 case '+':
                     result = num1 + num2;
@@ -83,7 +116,6 @@ public class Main {
                     result = num1 / num2;
                     break;
             }
-
             String[] romanNum = {
                     "0", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII",
                     "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XVI", "XVII", "XVIII", "XXIX", "XXX", "XXXI", "XXXII", "XXXIII", "XXXIV",
@@ -92,20 +124,21 @@ public class Main {
                     "LXV", "LXVI", "LXVII", "LXVIII", "LXIX", "LXX", "LXXI", "LXXII", "LXXIII", "LXXIV", "LXXV", "LXXVI", "LXXVII", "LXXVIII",
                     "LXXIX", "LXXX", "LXXXI", "LXXXII", "LXXXIII", "LXXXIV", "LXXXV", "LXXXVI", "LXXXVII", "LXXXVIII", "LXXXIX", "XC", "XCI", "XCII",
                     "XCIII", "XCIV", "XCV", "XCVI", "XCVII", "XCVIII", "XCIX", "C"};
-            try {
-                System.out.println("Output: " + romanNum[result]);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println("В римской системе счистления нет отрицательных чисел");
-            }
+
+                try {
+                    return arabianResult=romanNum[result].toString();
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    exception ="В римской системе счистления нет отрицательных чисел";
+                }
         }
-        //Обработка исключений
+//Обработка исключений
         String mathOperation = stringInput.replaceAll("\\d+|\\w+|", "");
         boolean mathOperationFalse = mathOperation.isEmpty();
         if (mathOperationFalse == true) {
             try {
                 throw new ArithmeticException();
             } catch (ArithmeticException e) {
-                System.out.println("Строка  не является математической операцией.");
+                exception ="Строка  не является математической операцией.";
             }
         }
 
@@ -115,21 +148,33 @@ public class Main {
             try {
                 throw new IOException();
             } catch (IOException e) {
-                System.out.println("Используются одновременно разные системы счисления");
+                exception ="Используются одновременно разные системы счисления";
             }
         }
 
-        String mathOperance = stringInput.replaceAll("[\\d+\\s(\\+|-|\\/|\\*)\\s\\d+]{5,}|[[I,V,X,L,C]+\\s(\\+|-|\\/|\\*)\\s[I,V,X,L,C]+]{5,}|", "");
+
+        String mathOperance = stringInput.replaceAll("[0-9]+\\s(\\+|-|\\/|\\*)\\s[0-9]+(\\s(\\+|-|\\/|\\*)\\s[0-9]+){1,}", "");
         boolean mathOperanceFalse = mathOperance.isEmpty();
-        if (mathOperanceFalse == true) {
+        if (stringInput.length() > 5 && mathOperanceFalse == true) {
             try {
                 throw new IOException();
             } catch (IOException e) {
-                System.out.println("Формат математической операции не удовлетворяет заданию - два операнда и один оператор (+,-,/,*)");
+                exception ="Формат математической операции не удовлетворяет заданию - два операнда и один оператор (+,-,/,*)";
             }
         }
 
+
+    String mathOperance2 = stringInput.replaceAll("[I,V,X,L,C]+\\s(\\+|-|\\/|\\*)\\s[I,V,X,L,C]+(\\s(\\+|-|\\/|\\*)\\s[I,V,X,L,C]+){1,}", "");
+    boolean mathOperanceFalse2 = mathOperance2.isEmpty();
+        if (stringInput.length() > 8 && mathOperanceFalse2 == true) {
+        try {
+            throw new IOException();
+        } catch (IOException e) {
+            exception ="Формат математической операции не удовлетворяет заданию - два операнда и один оператор (+,-,/,*)";
+        }
     }
+        return exception;
 }
 
+}
 
